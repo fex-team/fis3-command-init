@@ -5,6 +5,7 @@ var exists = fs.existsSync;
 var write = fs.writeFileSync;
 var read = fs.readFileSync;
 var rVariable = /\$\{([\w\.\-_]+)(?:\s+(.+?))?\}/g;
+var child_process = require('child_process');
 
 exports.name = 'init';
 exports.usage = '<template>';
@@ -207,7 +208,7 @@ exports.register = function(commander) {
           if (config.dependencies && config.dependencies.length ||
             config.devDependencies && config.devDependencies.length) {
             // run `npm install`
-            return Promise(function(resolve, reject) {
+            return new Promise(function(resolve, reject) {
               var spawn = child_process.spawn;
               console.log('Installing npm dependencies of server script.');
               console.log('npm install');
@@ -239,7 +240,7 @@ exports.register = function(commander) {
           var config = require(json);
 
           // run `npm install`
-          return Promise(function(resolve, reject) {
+          return new Promise(function(resolve, reject) {
             var spawn = child_process.spawn;
             console.log('Installing components...');
 
@@ -261,8 +262,8 @@ exports.register = function(commander) {
       })
 
       .then(function(info) {
-        console.log('Done!');
-      })
+        console.log('\nDone!');
+      });
 
     });
 };
