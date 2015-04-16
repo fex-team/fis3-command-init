@@ -79,7 +79,7 @@ exports.register = function(commander) {
             bar.tick();
           }
 
-          scaffold.download('fis-scaffold/' + settings.template, function(error, location) {
+          scaffold.download(fis.config.get('scaffold.namespace', 'fis-scaffold') + '/' + settings.template, function(error, location) {
             if (error) {
               return reject(error);
             }
@@ -210,7 +210,6 @@ exports.register = function(commander) {
             // run `npm install`
             return new Promise(function(resolve, reject) {
               var spawn = child_process.spawn;
-              console.log('Installing npm dependencies of server script.');
               console.log('npm install');
 
               var npm = process.platform === "win32" ? "npm.cmd" : "npm";
