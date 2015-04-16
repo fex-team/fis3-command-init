@@ -205,8 +205,8 @@ exports.register = function(commander) {
         if (exists(packageJson)) {
           var config = require(packageJson);
 
-          if (config.dependencies && config.dependencies.length ||
-            config.devDependencies && config.devDependencies.length) {
+          if (config.dependencies || config.devDependencies) {
+
             // run `npm install`
             return new Promise(function(resolve, reject) {
               var spawn = child_process.spawn;
@@ -214,7 +214,9 @@ exports.register = function(commander) {
               console.log('npm install');
 
               var npm = process.platform === "win32" ? "npm.cmd" : "npm";
-              var install = spawn(npm, ['install']);
+              var install = spawn(npm, ['install'], {
+                cwd: settings.root
+              });
               install.stdout.pipe(process.stdout);
               install.stderr.pipe(process.stderr);
 
