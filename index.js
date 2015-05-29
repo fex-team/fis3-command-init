@@ -3,7 +3,9 @@ var fs = require('fs');
 var path = require('path');
 var exists = fs.existsSync;
 var write = fs.writeFileSync;
-var read = fs.readFileSync;
+var read = function(filepath) {
+  return fis.util.read(filepath);
+};
 var rVariable = /\$\{([\w\.\-_]+)(?:\s+(.+?))?\}/g;
 var child_process = require('child_process');
 
@@ -102,7 +104,12 @@ exports.register = function(commander) {
             variables[m[1]] = variables[m[1]] || m[2];
           }
 
-          var contents = read(filename, 'utf8');
+          var contents = read(filename);
+
+          if (typeof contents !== 'string') {
+            return;
+          }
+
           while ((m = rVariable.exec(contents))) {
             variables[m[1]] = variables[m[1]] || m[2];
           }
@@ -151,7 +158,11 @@ exports.register = function(commander) {
         var variables = info.variables;
 
         files.forEach(function(filepath) {
-          var contents = read(filepath, 'utf8');
+          var contents = read(filepath);
+
+          if (typeof contents !== 'string') {
+            return;
+          }
 
           contents = contents.replace(rVariable, function(_, key) {
             return variables[key];
