@@ -72,16 +72,24 @@ exports.register = function(commander) {
 
       // downloading...
       .then(function() {
+        fis.log.info('Dir: %s', settings.root);
+
         return new Promise(function(resolve, reject) {
           var SimpleTick = require('./lib/tick.js');
           var bar;
 
+          var repos = settings.template;
+
+          if (!~repos.indexOf('/')) {
+            repos = fis.config.get('scaffold.namespace', 'fis-scaffold') + '/' + repos;
+          }
+
           function progress() {
-            bar = bar || new SimpleTick('downloading `' + settings.template + '` ');
+            bar = bar || new SimpleTick('downloading `' + repos + '` ');
             bar.tick();
           }
 
-          scaffold.download(fis.config.get('scaffold.namespace', 'fis-scaffold') + '/' + settings.template, function(error, location) {
+          scaffold.download(repos, function(error, location) {
             if (error) {
               return reject(error);
             }
