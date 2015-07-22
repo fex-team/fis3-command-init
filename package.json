@@ -1,6 +1,6 @@
 {
   "name": "fis3-command-init",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "scaffold for fis3",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,6 @@
   "dependencies": {
     "bluebird": "2.9.21",
     "findup": "0.1.5",
-    "fis-scaffold-kernel": "~0.0.20"
+    "fis-scaffold-kernel": "~0.1.0"
   }
 }
