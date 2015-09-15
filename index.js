@@ -30,7 +30,12 @@ exports.register = function(commander) {
 
       var settings = {
         root: options.root || '',
-        template: args[0] || 'default'
+        template: args[0] || 'default',
+        version: 1,
+        onCollectVariables: null,
+        onVaraiblesResolved: null,
+        onContentReplace: null,
+        onReplaced: null
       };
 
       // 根据 fis-conf.js 确定 root 目录
@@ -100,6 +105,24 @@ exports.register = function(commander) {
         });
       })
 
+      .then(function(tempdir) {
+        var script =  path.join(tempdir, '.scaffold.js');
+
+        if (exists(script)) {
+          try {
+            require(script)(settings);
+          } catch(e) {}
+
+          scaffold.util.del(script);
+
+          if (settings.version > 1) {
+            rVariable =  /\$\{\{([\w\.\-_]+)(?:\s+(.+?))?\}\}/g;
+          }
+        }
+
+        return tempdir;
+      })
+
       // collect variables.
       .then(function(tempdir) {
         var files = scaffold.util.find(tempdir);
@@ -122,6 +145,8 @@ exports.register = function(commander) {
             variables[m[1]] = variables[m[1]] || m[2];
           }
         });
+
+        settings.onCollectVariables && settings.onCollectVariables(variables);
 
         return {
           files: files,
@@ -156,6 +181,8 @@ exports.register = function(commander) {
           });
         }
 
+        settings.onVaraiblesResolved && settings.onVaraiblesResolved(info.variables, info);
+
         return info;
       })
 
@@ -176,9 +203,12 @@ exports.register = function(commander) {
             return variables[key];
           });
 
+          settings.onContentReplace && (contents = settings.onContentReplace(contents, filepath))
+
           write(filepath, contents);
         });
 
+        settings.onReplaced && settings.onReplaced(info);
         return info;
       })
 
