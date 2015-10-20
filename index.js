@@ -15,12 +15,7 @@ exports.desc = 'scaffold with specifed template.';
 
 exports.register = function(commander) {
   var Scaffold = require('fis-scaffold-kernel');
-  var scaffold = new Scaffold({
-    type: 'github',
-    log: {
-      level: 0
-    }
-  });
+  var scaffold;
 
   commander
     .option('-r, --root <path>', 'set project root')
@@ -84,6 +79,13 @@ exports.register = function(commander) {
           var bar;
 
           var repos = settings.template;
+          var type = 'github';
+          var idx = repos.indexOf(':');
+
+          if (~idx) {
+            type = repos.substring(0, idx);
+            repos = repos.substring(idx + 1);
+          }
 
           if (!~repos.indexOf('/')) {
             repos = fis.config.get('scaffold.namespace', 'fis-scaffold') + '/' + repos;
@@ -94,6 +96,12 @@ exports.register = function(commander) {
             bar.tick();
           }
 
+          scaffold = new Scaffold({
+            type: type,
+            log: {
+              level: 0
+            }
+          });
           scaffold.download(repos, function(error, location) {
             if (error) {
               return reject(error);
