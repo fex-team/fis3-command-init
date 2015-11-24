@@ -19,6 +19,7 @@ exports.register = function(commander) {
 
   commander
     .option('-r, --root <path>', 'set project root')
+    .option('-R, --repos <path>', 'set repos path')
     .action(function(template) {
       var args = [].slice.call(arguments);
       var options = args.pop();
@@ -98,6 +99,7 @@ exports.register = function(commander) {
 
           scaffold = new Scaffold({
             type: type,
+            repos: options.repos,
             log: {
               level: 0
             }
