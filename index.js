@@ -19,12 +19,14 @@ exports.register = function(commander) {
 
   commander
     .option('-r, --root <path>', 'set project root')
+    .option('--token <token>', 'private token')
     .action(function(template) {
       var args = [].slice.call(arguments);
       var options = args.pop();
 
       var settings = {
         root: options.root || '',
+        token: options.token,
         template: args[0] || 'default',
         version: 1,
         onCollectVariables: null,
@@ -79,7 +81,7 @@ exports.register = function(commander) {
           var bar;
 
           var repos = settings.template;
-          var type = 'github';
+          var type = fis.config.get('scaffold.type', 'github');
           var idx = repos.indexOf(':');
 
           if (~idx) {
@@ -90,6 +92,8 @@ exports.register = function(commander) {
           if (!~repos.indexOf('/')) {
             repos = fis.config.get('scaffold.namespace', 'fis-scaffold') + '/' + repos;
           }
+
+          var token = fis.config.get('scaffold.token', settings.token || '');
 
           function progress() {
             bar = bar || new SimpleTick('downloading `' + repos + '` ');
@@ -109,7 +113,7 @@ exports.register = function(commander) {
 
             bar.clear();
             resolve(location)
-          }, progress);
+          }, progress, {token: token});
         });
       })
 
