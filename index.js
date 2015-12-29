@@ -6,7 +6,7 @@ var write = fs.writeFileSync;
 var read = function(filepath) {
   return fis.util.read(filepath);
 };
-var rVariable = /\$\{([\w\.\-_]+)(?:\s+(.+?))?\}/g;
+var rVariable = /\$\{([\w\.\-_]+)(?:\s(.*?))?\}/g;
 var child_process = require('child_process');
 
 exports.name = 'init';
@@ -177,8 +177,8 @@ exports.register = function(commander) {
         Object.keys(variables).forEach(function(key) {
           schema.push({
             name: key,
-            required: true,
-            'default': variables[key]
+            required: variables[key] !== '::empty',
+            'default': variables[key] === '::empty' ? '' : variables[key]
           });
         });
 
@@ -268,26 +268,39 @@ exports.register = function(commander) {
         if (exists(packageJson)) {
           var config = require(packageJson);
 
-          if (config.dependencies || config.devDependencies) {
-
+          if (true/*config.dependencies || config.devDependencies*/) {
             // run `npm install`
             return new Promise(function(resolve, reject) {
-              var spawn = child_process.spawn;
-              console.log('npm install');
+              scaffold.prompt([{
+                name: 'Run `npm install`?',
+                'default': 'y'
+              }], function(error, result) {
+                if (error) {
+                  return reject(error);
+                }
 
-              var npm = process.platform === "win32" ? "npm.cmd" : "npm";
-              var install = spawn(npm, ['install'], {
-                cwd: settings.root
-              });
-              install.stdout.pipe(process.stdout);
-              install.stderr.pipe(process.stderr);
+                if (/^\s*y\s*$/.test(result['Run `npm install`?'])) {
+                  var spawn = child_process.spawn;
+                  console.log('npm install');
 
-              install.on('error', function(reason) {
-                reject(reason);
-              });
+                  var npm = process.platform === "win32" ? "npm.cmd" : "npm";
+                  var install = spawn(npm, ['install'], {
+                    cwd: settings.root
+                  });
+                  install.stdout.pipe(process.stdout);
+                  install.stderr.pipe(process.stderr);
 
-              install.on('close', function() {
-                resolve(info);
+                  install.on('error', function(reason) {
+                    reject(reason);
+                  });
+
+                  install.on('close', function() {
+                    resolve(info);
+                  });
+                } else {
+                  resolve(info);
+                }
+
               });
             });
           }
@@ -305,19 +318,78 @@ exports.register = function(commander) {
 
           // run `npm install`
           return new Promise(function(resolve, reject) {
-            var spawn = child_process.spawn;
-            console.log('Installing components...');
+            scaffold.prompt([{
+                name: 'Run `fis3 install`?',
+                'default': 'y'
+              }], function(error, result) {
+                if (error) {
+                  return reject(error);
+                }
 
-            var install = spawn(process.execPath, [process.argv[1], 'install']);
-            install.stdout.pipe(process.stdout);
-            install.stderr.pipe(process.stderr);
+                if (/^\s*y\s*$/.test(result['Run `fis3 install`?'])) {
+                  var spawn = child_process.spawn;
+                  console.log('npm install');
 
-            install.on('error', function(reason) {
-              reject(reason);
+                  var spawn = child_process.spawn;
+                  console.log('Installing components...');
+
+                  var install = spawn(process.execPath, [process.argv[1], 'install']);
+                  install.stdout.pipe(process.stdout);
+                  install.stderr.pipe(process.stderr);
+
+                  install.on('error', function(reason) {
+                    reject(reason);
+                  });
+
+                  install.on('close', function() {
+                    resolve(info);
+                  });
+                } else {
+                  resolve(info);
+                }
             });
+          });
+        }
 
-            install.on('close', function() {
-              resolve(info);
+        return info;
+      })
+
+      .then(function(info) {
+        var script =  path.join(settings.root, '.build.sh');
+
+        if (exists(script)) {
+          return new Promise(function(resolve, reject) {
+            scaffold.prompt([{
+                name: 'Run `.build.sh`?',
+                'default': 'y'
+              }], function(error, result) {
+                if (error) {
+                  return reject(error);
+                }
+
+                if (/^\s*y\s*$/.test(result['Run `.build.sh`?'])) {
+                  var spawn = child_process.spawn;
+                  console.log('sh .build.sh');
+
+                  var build = spawn('sh', ['.build.sh'], {
+                    cwd: settings.root
+                  });
+                  build.stdout.pipe(process.stdout);
+                  build.stderr.pipe(process.stderr);
+
+                  build.on('error', function(reason) {
+                    scaffold.util.del(script);
+                    reject(reason);
+                  });
+
+                  build.on('close', function() {
+                    scaffold.util.del(script);
+                    resolve(info);
+                  });
+                } else {
+                  scaffold.util.del(script);
+                  resolve(info);
+                }
             });
           });
         }
