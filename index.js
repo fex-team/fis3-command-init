@@ -268,7 +268,7 @@ exports.register = function(commander) {
         if (exists(packageJson)) {
           var config = require(packageJson);
 
-          if (true/*config.dependencies || config.devDependencies*/) {
+          if (config.dependencies || config.devDependencies) {
             // run `npm install`
             return new Promise(function(resolve, reject) {
               scaffold.prompt([{
